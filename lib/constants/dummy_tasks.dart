@@ -1,0 +1,58 @@
+import 'package:task_manager/models/task.dart';
+
+List<Task> dummyTasks = [
+  Task(
+    id: 1,
+    title: "Complete Flutter assignment",
+    description: "Finish the Flutter task manager app assignment.",
+    dueDate: DateTime.now().add(const Duration(days: 1)),
+    priority: Priority.high,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 1)),
+  ),
+  Task(
+    id: 2,
+    title: "Grocery shopping",
+    description: "Buy vegetables, fruits, and snacks for the week.",
+    dueDate: DateTime.now().add(const Duration(days: 2)),
+    priority: Priority.medium,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 2)),
+  ),
+  Task(
+    id: 3,
+    title: "Morning workout",
+    description: "Go for a morning run and do a 30-minute workout.",
+    dueDate: DateTime.now().add(const Duration(days: 0)),
+    priority: Priority.low,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 3)),
+  ),
+  Task(
+    id: 4,
+    title: "Team meeting",
+    description: "Discuss the new project roadmap with the team.",
+    dueDate: DateTime.now().add(const Duration(days: 3)),
+    priority: Priority.high,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 3)),
+  ),
+  Task(
+    id: 5,
+    title: "Doctor's appointment",
+    description: "Regular health check-up at the clinic.",
+    dueDate: DateTime.now().add(const Duration(days: 4)),
+    priority: Priority.medium,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 4)),
+  ),
+  Task(
+    id: 6,
+    title: "Read a book",
+    description: "Finish reading the current book.",
+    dueDate: DateTime.now().add(const Duration(days: 7)),
+    priority: Priority.low,
+    isCompleted: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 6)),
+  ),
+];
