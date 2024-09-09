@@ -8,11 +8,7 @@ class TasksNotifier extends StateNotifier<List<Task>> {
   final dbHelper = DBHelper();
 
   List<Task> tasks = [];
-  Map<String, bool> sortBy = {
-    'createdAt': false,
-    'priority': false,
-    'dueDate': false,
-  };
+  String sortBy = 'priority';
   String search = '';
   DateTime? selectedDate;
 
@@ -51,17 +47,17 @@ class TasksNotifier extends StateNotifier<List<Task>> {
   }
 
   void _sortTasks() {
-    if (sortBy['priority']!) {
+    if (sortBy == 'priority') {
       tasks.sort((a, b) => b.priority.index.compareTo(a.priority.index));
-    } else if (sortBy['dueDate']!) {
+    } else if (sortBy == 'dueDate') {
       tasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
-    } else if (sortBy['createdAt']!) {
+    } else if (sortBy == 'createdAt') {
       tasks.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     }
   }
 
   void toggleSortBy(String key) async {
-    sortBy[key] = !sortBy[key]!;
+    sortBy = key;
     await _saveSortPreferences();
     _sortTasks();
     state = [...tasks];
@@ -69,18 +65,14 @@ class TasksNotifier extends StateNotifier<List<Task>> {
 
   Future<void> _loadSortPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    sortBy['priority'] = prefs.getBool('sort_priority') ?? false;
-    sortBy['dueDate'] = prefs.getBool('sort_dueDate') ?? false;
-    sortBy['createdAt'] = prefs.getBool('sort_createdAt') ?? false;
+    sortBy = prefs.getString('sort') ?? 'priority';
     _sortTasks();
     state = [...tasks];
   }
 
   Future<void> _saveSortPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('sort_priority', sortBy['priority']!);
-    await prefs.setBool('sort_dueDate', sortBy['dueDate']!);
-    await prefs.setBool('sort_createdAt', sortBy['createdAt']!);
+    await prefs.setString('sort', sortBy);
   }
 
   void setSearch(String query) {
@@ -88,7 +80,7 @@ class TasksNotifier extends StateNotifier<List<Task>> {
     loadTasks();
   }
 
-  void setSelectedDate(DateTime date) {
+  void setSelectedDate(DateTime? date) {
     selectedDate = date;
     loadTasks();
   }

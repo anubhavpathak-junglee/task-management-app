@@ -19,7 +19,7 @@ class Task {
       'dueDate': dueDate.toIso8601String(),
       'priority': priority.index,
       'isCompleted': isCompleted ? 1 : 0,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toIso8601String().split('T').first,
     };
   }
 

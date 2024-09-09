@@ -35,13 +35,13 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
   void _submitTask() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
+      final DateTime now = DateTime.now();
       final newTask = Task(
         title: _title,
         description: _description,
         dueDate: _dueDate,
         priority: _priority,
-        createdAt: DateTime.now(),
+        createdAt: DateTime(now.year, now.month, now.day),
       );
 
       ref.read(tasksNotifierProvider.notifier).addTask(newTask);

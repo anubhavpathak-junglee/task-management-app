@@ -74,8 +74,9 @@ lib/
 |   |-- task_list_screen.dart  // Screen to list tasks
 |   |-- task_add_screen.dart   // Screen to add new tasks
 |   |-- task_detail_screen.dart // Screen to view task details
-|-- services/
-|   |-- shared_preferences_service.dart // Service to handle SharedPreferences logic
+|-- utils/                    // Utilities
+    |-- dbHelper.dart         // SQFLite Connector
+    |-- themes.dart           // Lightmode and Darkmode Themes  
 |-- widgets/                  // Custom reusable widgets
 ```
 
@@ -89,22 +90,3 @@ lib/
 
 - **Theme Preferences**: You can switch between light and dark themes from the settings menu. The selected theme is stored using SharedPreferences.
 - **Task Sorting**: Choose your preferred sorting method (e.g., by date, title, or priority). Your preference is saved and loaded automatically on app restart.
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request for any improvements or features you'd like to add.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or inquiries, please contact:
-
-- Your Name: [Your Email](mailto:your-email@example.com)
-- GitHub: [@yourusername](https://github.com/yourusername)
-
----
-
-Feel free to adjust the sections according to your specific project details, such as your repository URL, contact information, and other customization options.

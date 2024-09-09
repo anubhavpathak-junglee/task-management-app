@@ -7,6 +7,7 @@ import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/providers/theme_provider.dart';
 
 import 'package:task_manager/views/screens/add_task.dart';
+import 'package:task_manager/views/widgets/complete_task_item.dart';
 import 'package:task_manager/views/widgets/search.dart';
 import 'package:task_manager/views/widgets/sort_options.dart';
 import 'package:task_manager/views/widgets/task_item.dart';
@@ -128,6 +129,21 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                 ),
               ),
 
+              if(search.isEmpty && _selectedDate != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedDate = null;
+                    });
+                    ref.read(tasksNotifierProvider.notifier).setSelectedDate(_selectedDate);
+                  }, 
+                  label: const Text("Reset"),
+                  icon: const Icon(Icons.restore),
+                ),
+              ),
+
               if(search.isNotEmpty && incompleteTasks.isEmpty && completedTasks.isEmpty)
               Column(
                 children: [
@@ -146,7 +162,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                   color: Theme.of(context).cardColor,
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
                 ),
-                child: incompleteTasks.isEmpty ? 
+                child: incompleteTasks.isEmpty && _selectedDate == null ? 
                 Column(
                   children: [
                     Image.asset('assets/no_tasks.png'),
@@ -185,7 +201,8 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 8), 
+                    _selectedDate != null && incompleteTasks.isEmpty ? const Text("No tasks :)", textAlign: TextAlign.center,) : 
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

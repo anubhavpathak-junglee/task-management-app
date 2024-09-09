@@ -15,22 +15,49 @@ class TaskDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
+  late TextEditingController descriptionController;
+  late TextEditingController titleController;
+
+  bool _showSaveButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    titleController = TextEditingController(text: widget.task.title);
+    descriptionController = TextEditingController(text: widget.task.description);
+    titleController.addListener(() {
+      if(titleController.text != widget.task.title){
+        setState(() {
+          _showSaveButton = true;
+        });
+      } else {
+        setState(() {
+          _showSaveButton = false;
+        });
+      }
+    });
+    descriptionController.addListener(() {
+      if (descriptionController.text != widget.task.description) {
+        setState(() {
+          _showSaveButton = true;
+        });
+      } else {
+        setState(() {
+          _showSaveButton = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
     Task task = widget.task;
-
-    void toggleIsCompleted() {
-      task.isCompleted = !task.isCompleted;
-      ref.read(tasksNotifierProvider.notifier).updateTask(task);
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: task.isCompleted ? const Text('Task marked as completed') : const Text('Task marked as incomplete'),
-        ),
-      );
-    }
 
     Future<void> changeDueDate() async {
       DateTime? pickedDate = await showDatePicker(
@@ -40,18 +67,34 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         lastDate: DateTime(2101),
       );
       if (pickedDate != null && pickedDate != task.dueDate) {
-        ref.read(tasksNotifierProvider.notifier).updateTask(task);
         setState(() {
           task.dueDate = pickedDate;
+          _showSaveButton = true;
         });
       }
     }
 
     void changePriority (Priority? newValue) {
-      ref.read(tasksNotifierProvider.notifier).updateTask(task);
       setState(() {
         task.priority = newValue!;
+        _showSaveButton = true;
       });
+    }
+
+    void toggleIsCompleted () {
+      setState(() {
+        task.isCompleted = !task.isCompleted;
+        _showSaveButton = true;
+      });
+    }
+
+    void saveChanges() {
+      setState(() {
+        task.title = titleController.text;
+        task.description = descriptionController.text;
+        _showSaveButton = false;
+      });
+      ref.read(tasksNotifierProvider.notifier).updateTask(task);
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -62,15 +105,32 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(DateFormat('d MMM, yyyy').format(task.createdAt))
+        title: Text(DateFormat('d MMM, yyyy').format(task.createdAt)),
+        actions: [
+          if(_showSaveButton)
+          TextButton.icon(
+            onPressed: saveChanges, 
+            label: const Text("Save"),
+            icon: const Icon(Icons.save),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(task.title, style: Theme.of(context).textTheme.headlineMedium),
+
+            TextField(
+              controller: titleController, 
+              style: Theme.of(context).textTheme.headlineMedium,
+              decoration: const InputDecoration(
+                border: InputBorder.none
+              ),
+            ), 
+
             const SizedBox(height: 10),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -101,6 +161,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
               ],
             ),
             const SizedBox(height: 10),
+
             Text.rich(
               TextSpan(
                 children: [
@@ -114,23 +175,22 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
 
-            TextFormField(
-              initialValue: task.description,
-              maxLines: 20,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Add a description',
+            Expanded(
+              child: SingleChildScrollView(
+                child: TextFormField(
+                  controller: descriptionController,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Add a description',
+                  ),
+                ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  task.description = value;
-                });
-              },
-              // Need something to update the task description
-              
             )
+
           ],
         ),
       ),

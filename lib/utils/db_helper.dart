@@ -38,10 +38,10 @@ class DBHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
-        dueDate DATE NOT NULL,
+        dueDate TEXT NOT NULL,
         priority INTEGER NOT NULL,
         isCompleted INTEGER NOT NULL,
-        createdAt DATE NOT NULL
+        createdAt TEXT NOT NULL
       )
     ''');
   }
@@ -52,13 +52,13 @@ class DBHelper {
   }
 
 Future<List<Task>> getTasks(String search, DateTime? selectedDate) async {
-  final db = await database;
+  final db = await database; 
   String whereClause = 'title LIKE ? OR description LIKE ?';
   List<String> whereArgs = ['%$search%', '%$search%'];
 
   if (selectedDate != null) {
-    whereClause += ' AND createdAt = ?';
-    whereArgs.add(selectedDate.toIso8601String());
+    whereClause = 'createdAt = ?';
+    whereArgs = [selectedDate.toIso8601String().split('T').first];
   }
 
   final List<Map<String, dynamic>> maps = await db.query(
