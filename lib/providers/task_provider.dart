@@ -50,9 +50,9 @@ class TasksNotifier extends StateNotifier<List<Task>> {
     if (sortBy == 'priority') {
       tasks.sort((a, b) => b.priority.index.compareTo(a.priority.index));
     } else if (sortBy == 'dueDate') {
-      tasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      tasks.sort((a, b) => a.dateTime().compareTo(b.dateTime()));
     } else if (sortBy == 'createdAt') {
-      tasks.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      tasks.sort((a, b) => a.createdDateTime.compareTo(b.createdDateTime));
     }
   }
 
@@ -66,7 +66,6 @@ class TasksNotifier extends StateNotifier<List<Task>> {
   Future<void> _loadSortPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     sortBy = prefs.getString('sort') ?? 'priority';
-    _sortTasks();
     state = [...tasks];
   }
 

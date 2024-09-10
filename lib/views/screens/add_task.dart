@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:task_manager/models/task.dart';
 import 'package:task_manager/providers/task_provider.dart';
 
@@ -13,21 +14,26 @@ class AddTaskScreen extends ConsumerStatefulWidget {
 class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String _title = '';
-  String _description = '';
-  DateTime _dueDate = DateTime.now();
-  Priority _priority = Priority.medium;
+  String title = "";
+  String description= "";
+  DateTime dueDate = DateTime.now();
+  TimeOfDay dueTime = TimeOfDay.now();
+  Priority priority = Priority.low;
+  bool repeat = false;
 
-  Future<void> _pickDueDate() async {
+  Future<void> _pickDueDateTime() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _dueDate,
+      initialDate: dueDate,
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
-    if (pickedDate != null && pickedDate != _dueDate) {
+    if(!mounted) return;
+    TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: dueTime);
+    if((pickedTime != null && pickedTime != dueTime) && (pickedDate != null && pickedDate != dueDate)) {
       setState(() {
-        _dueDate = pickedDate;
+        dueDate = pickedDate;
+        dueTime = pickedTime;
       });
     }
   }
@@ -35,17 +41,15 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
   void _submitTask() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final DateTime now = DateTime.now();
       final newTask = Task(
-        title: _title,
-        description: _description,
-        dueDate: _dueDate,
-        priority: _priority,
-        createdAt: DateTime(now.year, now.month, now.day),
+        title: title,
+        description: description,
+        dueDateTime: Task.toStringDateTime(dueDate, dueTime),
+        repeat: repeat,
+        priority: priority,
+        createdAt: DateFormat('d MMM, y').format(DateTime.now())
       );
-
       ref.read(tasksNotifierProvider.notifier).addTask(newTask);
-
       Navigator.of(context).pop({'added': true});
     }
   }
@@ -54,94 +58,113 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Task'),
+        title: const Text('New Task'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
+
               TextFormField(
+                style: Theme.of(context).textTheme.headlineMedium,
                 decoration: const InputDecoration(
-                  border: UnderlineInputBorder(),
-                  labelText: 'Title'
+                  border: InputBorder.none,
+                  hintText: "Add a Title"
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
+                  if(value == null || value.isEmpty || value.trim() == '' ) return 'Please enter a title';
                   return null;
                 },
-                onSaved: (value) {
-                  _title = value!;
-                },
+                onSaved: (newValue) => setState(() {
+                  title = newValue!;
+                }),
+              ), 
+
+              const SizedBox(height: 20,),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
+                  ),
+                  onPressed: _pickDueDateTime, 
+                  label: Text(DateFormat('d MMM, y, HH:mm').format(DateTime(dueDate.year, dueDate.month, dueDate.day, dueTime.hour, dueTime.minute))),
+                  icon: const Icon(Icons.access_time),
+                ),
               ),
-              TextFormField(
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  border: UnderlineInputBorder(),
-                  labelText: 'Description'
-                ), onSaved: (value) {
-                  _description = value!;
-                },
-              ),
+
+              const SizedBox(width: 20,),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<Priority>(
-                      value: _priority,
-                      decoration: const InputDecoration(labelText: 'Priority'),
+                      value: Priority.high,
+                      decoration: const InputDecoration(
+                        prefixText: "Priority ",
+                        border: InputBorder.none,
+                      ),
                       items: Priority.values.map((Priority priority) {
                         return DropdownMenuItem<Priority>(
                           value: priority,
                           child: Text(priority.toString().split('.').last[0].toUpperCase() + priority.toString().split('.').last.substring(1)),
                         );
                       }).toList(),
-                      onChanged: (Priority? newValue) {
+                      onChanged: (value) {
+                        priority = value!;
+                      }
+                    ),
+                  ),
+                  Expanded(
+                    child: SwitchListTile(
+                      title: const Text("Repeat"),
+                      value: repeat, 
+                      onChanged: (value) {
                         setState(() {
-                          _priority = newValue!;
+                          repeat = value;
                         });
-                      },
+                      }
                     ),
-                  ),
-                  Expanded(
-                    child: ListTile(
-                      title: const Text("Due Date"),
-                      subtitle: Text(
-                          "${_dueDate.year}-${_dueDate.month}-${_dueDate.day}"),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: _pickDueDate,
-                    ),
-                  ),
+                  )
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        _formKey.currentState!.reset();
-                      },
-                      child: const Text('Clear', textAlign: TextAlign.right,),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Add a Description"
                     ),
+                    maxLines: null,
+                    onChanged: (value) => setState(() {
+                      description = value;
+                    }),
                   ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _submitTask,
-                      child: const Text('Add Task'),
-                    ),
-                  ),
-                ],
+                ),
               ),
+
+              const SizedBox(height: 80,)
+
             ],
           ),
         ),
       ),
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _submitTask,
+        label: Text(
+          "Add",
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+            color: Theme.of(context).colorScheme.onSecondary,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 }

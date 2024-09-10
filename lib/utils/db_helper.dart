@@ -38,8 +38,9 @@ class DBHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
-        dueDate TEXT NOT NULL,
+        dueDateTime TEXT NOT NULL,
         priority INTEGER NOT NULL,
+        repeat INTEGER NOT NULL,
         isCompleted INTEGER NOT NULL,
         createdAt TEXT NOT NULL
       )

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:task_manager/models/task.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/views/screens/task_details_screen.dart';
@@ -52,7 +51,18 @@ class _TaskItemState extends ConsumerState<TaskItem> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Due on ${DateFormat('MMM d, yyyy').format(task.dueDate)}', style: Theme.of(context).textTheme.labelSmall!),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          if(task.repeat)
+                          const WidgetSpan(child: Icon(Icons.repeat, size: 14,)),
+                          TextSpan( 
+                            text: ' Due on ${task.dueDateTime}',
+                            style: Theme.of(context).textTheme.labelSmall!,
+                          )
+                        ]
+                      )
+                    ),
                     const SizedBox(height: 10),
                     Text(task.title.length > 25 ? '${task.title.substring(0, 25)}...' : task.title, style: Theme.of(context).textTheme.titleMedium!),
                     Text(task.description.length > 25 ? '${task.description.substring(0, 25)}...' : task.description, style: Theme.of(context).textTheme.bodyMedium),

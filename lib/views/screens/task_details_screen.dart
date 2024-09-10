@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:task_manager/models/task.dart';
 import 'package:task_manager/providers/task_provider.dart';
@@ -59,16 +58,18 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
   Widget build(BuildContext context) {
     Task task = widget.task;
 
-    Future<void> changeDueDate() async {
+    Future<void> changeDueDateTime() async {
       DateTime? pickedDate = await showDatePicker(
         context: context,
-        initialDate: task.dueDate,
+        initialDate: task.dateTime(),
         firstDate: DateTime.now(),
         lastDate: DateTime(2101),
       );
-      if (pickedDate != null && pickedDate != task.dueDate) {
+      if(!mounted) return;
+      TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: task.timeOfDay());
+      if((pickedTime != null) && (pickedDate != null)) {
         setState(() {
-          task.dueDate = pickedDate;
+          task.dueDateTime = Task.toStringDateTime(pickedDate, pickedTime);
           _showSaveButton = true;
         });
       }
@@ -77,6 +78,13 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
     void changePriority (Priority? newValue) {
       setState(() {
         task.priority = newValue!;
+        _showSaveButton = true;
+      });
+    }
+    
+    void toggleRepeat (value) {
+      setState(() {
+        task.repeat = value;
         _showSaveButton = true;
       });
     }
@@ -105,7 +113,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(DateFormat('d MMM, yyyy').format(task.createdAt)),
+        title: Text(task.createdAt),
         actions: [
           if(_showSaveButton)
           TextButton.icon(
@@ -129,24 +137,30 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
               ),
             ), 
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20,),
+
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
+                ),
+                onPressed: changeDueDateTime, 
+                label: Text(task.dueDateTime),
+                icon: const Icon(Icons.access_time),
+              ),
+            ),
+
+            const SizedBox(width: 20,),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(0)
-                  ),
-                  onPressed: changeDueDate, 
-                  label: Text(DateFormat('d MMM, yyyy').format(task.dueDate)),
-                  icon: const Icon(Icons.access_time),
-                ),
-                const Spacer(),
                 Expanded(
                   child: DropdownButtonFormField<Priority>(
                     value: task.priority,
                     decoration: const InputDecoration(
+                      prefixText: "Priority ",
                       border: InputBorder.none,
                     ),
                     items: Priority.values.map((Priority priority) {
@@ -155,25 +169,17 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                         child: Text(priority.toString().split('.').last[0].toUpperCase() + priority.toString().split('.').last.substring(1)),
                       );
                     }).toList(),
-                    onChanged: changePriority,
+                    onChanged: changePriority
                   ),
-                ), 
+                ),
+                Expanded(
+                  child: SwitchListTile(
+                    title: const Text("Repeat"),
+                    value: task.repeat, 
+                    onChanged: toggleRepeat
+                  ),
+                )
               ],
-            ),
-            const SizedBox(height: 10),
-
-            Text.rich(
-              TextSpan(
-                children: [
-                  WidgetSpan(
-                    child: Icon(Icons.description, color: Theme.of(context).textTheme.titleLarge!.color,),
-                  ),
-                  TextSpan(
-                    text: 'Description',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
             ),
 
             const SizedBox(height: 20),
@@ -189,8 +195,9 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                   ),
                 ),
               ),
-            )
+            ),
 
+            const SizedBox(height: 80,)
           ],
         ),
       ),
@@ -203,6 +210,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
           ),
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 }
